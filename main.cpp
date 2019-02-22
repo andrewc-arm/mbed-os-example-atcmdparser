@@ -18,14 +18,15 @@
 #include "ATCmdParser.h"
 #include "UARTSerial.h"
 
+#define   PARSER_MODE  SERVER
 #define   ESP8266_DEFAULT_BAUD_RATE   115200
 
 UARTSerial *_serial;
 ATCmdParser *_parser;
 
-int main()
+int client_func()
 {
-    printf("\nATCmdParser with ESP8266 example");
+    printf("\nATCmdParser Client with ESP8266 example");
 
     _serial = new UARTSerial(UART_TX0, UART_RX0, ESP8266_DEFAULT_BAUD_RATE);
     _parser = new ATCmdParser(_serial);
@@ -45,4 +46,49 @@ int main()
     }
 
     printf("\nDone\n");
+    return 0;
 }
+
+void atcmd_server_cb_test1()
+{
+    _parser->send("%s: OK\n", __func__);
+}
+
+void atcmd_server_cb_test2()
+{
+    _parser->send("%s: OK\n", __func__);
+}
+
+int server_func()
+{
+    printf("\nATCmdParser Server example");
+
+    _serial = new UARTSerial(UART_TX0, UART_RX0, ESP8266_DEFAULT_BAUD_RATE);
+    _parser = new ATCmdParser(_serial);
+    _parser->debug_on( 1 );
+    _parser->set_delimiter( "\r\n" );
+
+    // Register AT commands.
+    _parser->oob("+TEST1", atcmd_server_cb_test1);
+    _parser->oob("+TEST2", atcmd_server_cb_test2);
+
+    for (;;)
+    {
+        while (_parser->process_oob());
+        wait_ms(100);
+    }
+
+    return -1;
+}
+
+int main()
+{
+#if   PARSER_MODE == SERVER
+    return server_func();
+#elif PARSER_MODE == CLIENT
+    return client_func();
+#else
+    return 0;
+#endif
+}
+
