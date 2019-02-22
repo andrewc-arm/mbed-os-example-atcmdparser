@@ -26,8 +26,8 @@ ATCmdParser *_parser;
 int main()
 {
     printf("\nATCmdParser with ESP8266 example");
-    
-    _serial = new UARTSerial(D1, D0, ESP8266_DEFAULT_BAUD_RATE);
+
+    _serial = new UARTSerial(UART_TX0, UART_RX0, ESP8266_DEFAULT_BAUD_RATE);
     _parser = new ATCmdParser(_serial);
     _parser->debug_on( 1 );
     _parser->set_delimiter( "\r\n" );
