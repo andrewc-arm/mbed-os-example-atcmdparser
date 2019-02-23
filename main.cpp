@@ -21,14 +21,14 @@
 #define   PARSER_MODE  SERVER
 #define   ESP8266_DEFAULT_BAUD_RATE   115200
 
-UARTSerial *_serial;
+Serial *_serial;
 ATCmdParser *_parser;
 
 int client_func()
 {
     printf("\nATCmdParser Client with ESP8266 example");
 
-    _serial = new UARTSerial(UART_TX0, UART_RX0, ESP8266_DEFAULT_BAUD_RATE);
+    _serial = new Serial(UART_TX0, UART_RX0, NULL, ESP8266_DEFAULT_BAUD_RATE);
     _parser = new ATCmdParser(_serial);
     _parser->debug_on( 1 );
     _parser->set_delimiter( "\r\n" );
@@ -56,10 +56,12 @@ void atcmd_server_cb_test()
 
 int server_func()
 {
-    _serial = new UARTSerial(UART_TX0, UART_RX0, ESP8266_DEFAULT_BAUD_RATE);
+    _serial = new Serial(UART_TX0, UART_RX0, NULL, ESP8266_DEFAULT_BAUD_RATE);
     _parser = new ATCmdParser(_serial);
-    _parser->debug_on( 1 );
-    _parser->set_delimiter( "\r\n" );
+    _parser->debug_on(1);
+    // This will be added at the end of send().
+    _parser->set_delimiter("\r\n");
+    _parser->set_timeout(5000);
 
     // Register AT commands.
     // _parser->oob("+TEST", atcmd_server_cb_test);
@@ -68,10 +70,39 @@ int server_func()
     for (;;)
     {
         // while (_parser->process_oob());
-        _parser->send("recv start\n");
-        int cT = _parser->getc();
-        _parser->putc((char)cT);
-        _parser->send("recv end: value = %d\n", cT);
+        int cT;
+        bool res;
+
+        _parser->send("recv start. type in integer.\n");
+        cT = -1;
+        res = _parser->recv("%d", &cT);
+        _parser->send("recv end: res = %d, value = %d\n", res, cT);
+        wait_ms(3000);
+
+        _parser->send("scanf start. type in integer\n");
+        cT = -1;
+        res = _parser->scanf("%d", &cT);
+        _parser->send("scanf end: res = %d, value = %d\n", res, cT);
+        wait_ms(3000);
+
+        _parser->send("getc start. type in a character\n");
+        cT = _parser->getc();
+        _parser->send("getc end: value = %d\n", cT);
+        wait_ms(3000);
+
+        char buf[128];
+        _parser->send("read start. type string.\n");
+        cT = _parser->read(buf, sizeof(buf));
+        if (cT > 0)
+        {
+            buf[cT] = 0;
+            _parser->send("read end: str: %s\n", buf);
+        }
+        else
+        {
+            _parser->send("read fail: cT = %d\n", cT);
+        }
+        wait_ms(3000);
     }
 
     return -1;
