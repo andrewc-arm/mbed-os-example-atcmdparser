@@ -64,12 +64,11 @@ int server_func()
     _parser->set_timeout(5000);
 
     // Register AT commands.
-    // _parser->oob("+TEST", atcmd_server_cb_test);
+    _parser->oob("+TEST", atcmd_server_cb_test);
 
     _parser->send("READY: %s:%s\n", __DATE__, __TIME__);
     for (;;)
     {
-        // while (_parser->process_oob());
         int cT;
 
         cT = _parser->getc();
@@ -78,6 +77,7 @@ int server_func()
             case '\r':
             case '\n':
                 _parser->send("\r\nreceived command");
+                _parser->process_oob();
                 break;
         }
     }
