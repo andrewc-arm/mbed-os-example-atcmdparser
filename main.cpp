@@ -51,7 +51,14 @@ int client_func()
 
 void atcmd_server_cb_test()
 {
-    _parser->send("%s: OK\n", __func__);
+    int val;
+    _parser->scanf(",%d;", &val);
+    _parser->send("\r\n%s: val=%d\n", __func__, val);
+}
+
+void atcmd_server_cb_run()
+{
+    _parser->send("\r\n%s: OK\n", __func__);
 }
 
 int server_func()
@@ -64,22 +71,17 @@ int server_func()
     _parser->set_timeout(5000);
 
     // Register AT commands.
+    // ex. +TEST,3;
     _parser->oob("+TEST", atcmd_server_cb_test);
+    // ex. +RUN;
+    _parser->oob("+RUN", atcmd_server_cb_run);
 
     _parser->send("READY: %s:%s\n", __DATE__, __TIME__);
     for (;;)
     {
-        int cT;
-
-        cT = _parser->getc();
-        switch (cT)
-        {
-            case '\r':
-            case '\n':
-                _parser->send("\r\nreceived command");
-                _parser->process_oob();
-                break;
-        }
+        // This internally calls getc()
+        // In order to flush internal buffer press enter.
+        _parser->process_oob();
     }
 
     return -1;
