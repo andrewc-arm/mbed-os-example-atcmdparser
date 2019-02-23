@@ -49,33 +49,29 @@ int client_func()
     return 0;
 }
 
-void atcmd_server_cb_test1()
-{
-    _parser->send("%s: OK\n", __func__);
-}
-
-void atcmd_server_cb_test2()
+void atcmd_server_cb_test()
 {
     _parser->send("%s: OK\n", __func__);
 }
 
 int server_func()
 {
-    printf("\nATCmdParser Server example");
-
     _serial = new UARTSerial(UART_TX0, UART_RX0, ESP8266_DEFAULT_BAUD_RATE);
     _parser = new ATCmdParser(_serial);
     _parser->debug_on( 1 );
     _parser->set_delimiter( "\r\n" );
 
     // Register AT commands.
-    _parser->oob("+TEST1", atcmd_server_cb_test1);
-    _parser->oob("+TEST2", atcmd_server_cb_test2);
+    // _parser->oob("+TEST", atcmd_server_cb_test);
 
+    _parser->send("READY: %s:%s\n", __DATE__, __TIME__);
     for (;;)
     {
-        while (_parser->process_oob());
-        wait_ms(100);
+        // while (_parser->process_oob());
+        _parser->send("recv start\n");
+        int cT = _parser->getc();
+        _parser->putc((char)cT);
+        _parser->send("recv end: value = %d\n", cT);
     }
 
     return -1;
