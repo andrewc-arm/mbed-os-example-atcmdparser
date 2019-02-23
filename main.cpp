@@ -71,38 +71,15 @@ int server_func()
     {
         // while (_parser->process_oob());
         int cT;
-        bool res;
 
-        _parser->send("recv start. type in integer.\n");
-        cT = -1;
-        res = _parser->recv("%d", &cT);
-        _parser->send("recv end: res = %d, value = %d\n", res, cT);
-        wait_ms(3000);
-
-        _parser->send("scanf start. type in integer\n");
-        cT = -1;
-        res = _parser->scanf("%d", &cT);
-        _parser->send("scanf end: res = %d, value = %d\n", res, cT);
-        wait_ms(3000);
-
-        _parser->send("getc start. type in a character\n");
         cT = _parser->getc();
-        _parser->send("getc end: value = %d\n", cT);
-        wait_ms(3000);
-
-        char buf[128];
-        _parser->send("read start. type string.\n");
-        cT = _parser->read(buf, sizeof(buf));
-        if (cT > 0)
+        switch (cT)
         {
-            buf[cT] = 0;
-            _parser->send("read end: str: %s\n", buf);
+            case '\r':
+            case '\n':
+                _parser->send("\r\nreceived command");
+                break;
         }
-        else
-        {
-            _parser->send("read fail: cT = %d\n", cT);
-        }
-        wait_ms(3000);
     }
 
     return -1;
