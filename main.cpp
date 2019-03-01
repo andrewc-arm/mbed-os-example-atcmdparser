@@ -21,14 +21,13 @@
 #define   PARSER_MODE  SERVER
 #define   ESP8266_DEFAULT_BAUD_RATE   115200
 
-Serial *_serial;
 ATCmdParser *_parser;
 
 int client_func()
 {
     printf("\nATCmdParser Client with ESP8266 example");
 
-    _serial = new Serial(UART_TX0, UART_RX0, NULL, ESP8266_DEFAULT_BAUD_RATE);
+    Serial *_serial = new Serial(UART_TX0, UART_RX0, NULL, ESP8266_DEFAULT_BAUD_RATE);
     _parser = new ATCmdParser(_serial);
     _parser->debug_on( 1 );
     _parser->set_delimiter( "\r\n" );
@@ -63,7 +62,7 @@ void atcmd_server_cb_run()
 
 int server_func()
 {
-    _serial = new Serial(UART_TX0, UART_RX0, NULL, ESP8266_DEFAULT_BAUD_RATE);
+    UARTSerial *_serial = new UARTSerial(UART_TX0, UART_RX0,  ESP8266_DEFAULT_BAUD_RATE);
     _parser = new ATCmdParser(_serial);
     _parser->debug_on(1);
     // This will be added at the end of send().
@@ -83,8 +82,6 @@ int server_func()
         // In order to flush internal buffer press enter.
         _parser->process_oob();
     }
-
-    return -1;
 }
 
 int main()
@@ -97,4 +94,3 @@ int main()
     return 0;
 #endif
 }
-
