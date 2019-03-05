@@ -49,10 +49,25 @@ int client_func()
     return 0;
 }
 
+size_t atcmd_server_read_str(ATCmdParser *parser, char *str, size_t strLen)
+{
+    size_t i = 0;
+    size_t iEnd = strLen - 1;
+    for ( ; i < iEnd; i++)
+    {
+        char cT = parser->getc();
+        if (cT == '\r' || cT == '\n')
+            break;
+        str[i] = cT;
+    }
+    str[i] = 0;
+    return i;
+}
+
 void atcmd_server_cb_test_str()
 {
-    char str[16];
-    _parser->scanf(": %3s;\n", str);
+    char str[128];
+    atcmd_server_read_str(_parser, str, sizeof(str));
     _parser->send("\r\n%s: string received: %s\n", __func__, str);
 }
 
@@ -78,8 +93,8 @@ int server_func()
     _parser->set_timeout(5000);
 
     // Register AT commands.
-    // ex. AT+TEST_STR: ABC;
-    _parser->oob("AT+TEST_STR", atcmd_server_cb_test_str);
+    // ex. AT+TEST_STR: Hello World!
+    _parser->oob("AT+TEST_STR: ", atcmd_server_cb_test_str);
     // ex. AT+TEST_INT: 123;
     _parser->oob("AT+TEST_INT", atcmd_server_cb_test_int);
     // ex. AT+RUN
