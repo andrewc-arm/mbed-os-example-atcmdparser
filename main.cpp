@@ -49,11 +49,18 @@ int client_func()
     return 0;
 }
 
-void atcmd_server_cb_test()
+void atcmd_server_cb_test_str()
+{
+    char str[16];
+    _parser->scanf(": %3s;\n", str);
+    _parser->send("\r\n%s: string received: %s\n", __func__, str);
+}
+
+void atcmd_server_cb_test_int()
 {
     int val;
-    _parser->scanf(",%d;", &val);
-    _parser->send("\r\n%s: val=%d\n", __func__, val);
+    _parser->scanf(": %d;\n", &val);
+    _parser->send("\r\n%s: integer val received: %d\n", __func__, val);
 }
 
 void atcmd_server_cb_run()
@@ -71,10 +78,12 @@ int server_func()
     _parser->set_timeout(5000);
 
     // Register AT commands.
-    // ex. +TEST,3;
-    _parser->oob("+TEST", atcmd_server_cb_test);
-    // ex. +RUN;
-    _parser->oob("+RUN", atcmd_server_cb_run);
+    // ex. AT+TEST_STR: ABC;
+    _parser->oob("AT+TEST_STR", atcmd_server_cb_test_str);
+    // ex. AT+TEST_INT: 123;
+    _parser->oob("AT+TEST_INT", atcmd_server_cb_test_int);
+    // ex. AT+RUN
+    _parser->oob("AT+RUN\n", atcmd_server_cb_run);
 
     _parser->send("READY: %s:%s\n", __DATE__, __TIME__);
     for (;;)
